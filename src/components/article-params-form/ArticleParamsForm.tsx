@@ -6,7 +6,6 @@ import { RadioGroup } from 'src/ui/radio-group';
 import { Select } from 'src/ui/select';
 import { Separator } from 'src/ui/separator';
 import { Text } from 'src/ui/text';
-import { useOutsideClickClose } from 'src/ui/select/hooks/useOutsideClickClose';
 
 import {
 	ArticleStateType,
@@ -32,20 +31,34 @@ export const ArticleParamsForm = ({
 }: ArticleParamsFormProps) => {
 	const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
 
-	// временное состояние формы (из текущего состояния статьи)
+	// временное состояние формы
 	const [formState, setFormState] = useState<ArticleStateType>(currentState);
 
 	const formRootRef = useRef<HTMLDivElement | null>(null);
 
-	// Закрытие при клике вне
-	useOutsideClickClose({
-		isOpen: isFormOpen,
-		rootRef: formRootRef,
-		onChange: setIsFormOpen,
-		onClose: () => setIsFormOpen(false),
-	});
+	useEffect(() => {
+		if (!isFormOpen) return; // сайдбар закрыт, ничего не вешаем
 
-	// Синхронизируем форму с currentState при его изменении (например при загрузке или после Apply)
+		const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+			const target = e.target as Node | null;
+			if (!formRootRef.current || !target) return;
+
+			// клик вне панели, закрываем
+			if (!formRootRef.current.contains(target)) {
+				setIsFormOpen(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handlePointerDown);
+		document.addEventListener('touchstart', handlePointerDown);
+
+		// удаляем обработчики при закрытии
+		return () => {
+			document.removeEventListener('mousedown', handlePointerDown);
+			document.removeEventListener('touchstart', handlePointerDown);
+		};
+	}, [isFormOpen]);
+
 	useEffect(() => {
 		setFormState(currentState);
 	}, [currentState]);
@@ -79,11 +92,8 @@ export const ArticleParamsForm = ({
 	const handleChangeContentWidth = (opt: OptionType) =>
 		setFormState((s) => ({ ...s, contentWidth: opt }));
 
-	// Дополнительный обработчик (Esc закрыть) только когда форма открыта.
 	useEffect(() => {
-		if (!isFormOpen) {
-			return;
-		}
+		if (!isFormOpen) return;
 
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
@@ -98,6 +108,7 @@ export const ArticleParamsForm = ({
 	return (
 		<>
 			<ArrowButton isOpen={isFormOpen} onClick={toggleFormOpen} />
+
 			<aside
 				ref={formRootRef}
 				className={clsx(styles.container, {
