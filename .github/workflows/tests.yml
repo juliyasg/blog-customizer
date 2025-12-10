@@ -14,13 +14,23 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 20
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps
+
     - name: Check if the repository is private
       if: ${{github.event.repository.private}}
       run: exit 1
+
     - name: Get testing lib
       run: set -eu && git clone https://github.com/Yandex-Practicum/tests-blog-customizer.git /tmp/tests-blog-customizer
+
     - name: Run tests
       run: bash /tmp/tests-blog-customizer/run.sh
+
     - uses: actions/upload-artifact@v4
       if: always()
       with:

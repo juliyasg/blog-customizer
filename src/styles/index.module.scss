@@ -2,3 +2,23 @@
 	--bg-color: #ffffff;
 	background-color: var(--bg-color, #ffffff);
 }
+
+main[data-content='wide'] img[alt='Картинка самолета'],
+main[data-content='narrow'] img[alt='Картинка самолета'] {
+	display: block;
+	width: 100vw;
+	max-width: none;
+	height: auto;
+	max-height: 100vh;
+	margin-right: calc(50% - 50vw);
+	margin-left: calc(50% - 50vw);
+	object-fit: cover;
+}
+
+main[data-content='wide'] article {
+	overflow: visible;
+}
+
+main[data-content='narrow'] article {
+	overflow: hidden;
+}
