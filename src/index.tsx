@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { StrictMode, CSSProperties, useState } from 'react';
+import { StrictMode, CSSProperties, useEffect, useState } from 'react';
 import clsx from 'clsx';
 
 import { Article } from './components/article/Article';
@@ -36,8 +36,8 @@ const loadAppliedState = (): ArticleStateType => {
 	}
 };
 
-const domNode = document.getElementById('root') as HTMLDivElement;
-const root = createRoot(domNode);
+const rootElement = document.getElementById('root') as HTMLDivElement;
+const root = createRoot(rootElement);
 
 const App = () => {
 	// App хранит текущее состояние статьи
@@ -46,7 +46,7 @@ const App = () => {
 	);
 
 	// Обёртка для css custom properties
-	const cssVars = {
+	const articleCssVars = {
 		'--font-family': articleState.fontFamilyOption.value,
 		'--font-size': articleState.fontSizeOption.value,
 		'--font-color': articleState.fontColor.value,
@@ -56,25 +56,28 @@ const App = () => {
 	} as CSSProperties;
 
 	// добавляем data-атрибут для управления картинки
-	const dataContent =
+	const contentWidthDataAttr =
 		articleState.contentWidth.value === '1394px' ? 'wide' : 'narrow';
 
-	// Когда форма вызывает onStateChange, то применяется новое состояние и сохраняется
-	const handleStateChange = (newState: ArticleStateType) => {
+	const applyArticleState = (newState: ArticleStateType) => {
 		setArticleState(newState);
-		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
-		} catch {}
 	};
+
+	// сохранение state в localStorage при любом изменении articleState
+	useEffect(() => {
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(articleState));
+		} catch {}
+	}, [articleState]);
 
 	return (
 		<main
 			className={clsx(styles.main)}
-			style={cssVars}
-			data-content={dataContent}>
+			style={articleCssVars}
+			data-content={contentWidthDataAttr}>
 			<ArticleParamsForm
 				currentState={articleState}
-				onStateChange={handleStateChange}
+				onStateChange={applyArticleState}
 			/>
 			<Article />
 		</main>

@@ -30,58 +30,80 @@ export const ArticleParamsForm = ({
 	currentState,
 	onStateChange,
 }: ArticleParamsFormProps) => {
-	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
 
 	// временное состояние формы (из текущего состояния статьи)
 	const [formState, setFormState] = useState<ArticleStateType>(currentState);
 
-	const rootRef = useRef<HTMLDivElement | null>(null);
+	const formRootRef = useRef<HTMLDivElement | null>(null);
 
 	// Закрытие при клике вне
 	useOutsideClickClose({
-		isOpen,
-		rootRef,
-		onChange: setIsOpen,
-		onClose: () => setIsOpen(false),
+		isOpen: isFormOpen,
+		rootRef: formRootRef,
+		onChange: setIsFormOpen,
+		onClose: () => setIsFormOpen(false),
 	});
 
-	// Синхронизируем форму с currentState при его изменении (например, при загрузке или после Apply)
+	// Синхронизируем форму с currentState при его изменении (например при загрузке или после Apply)
 	useEffect(() => {
 		setFormState(currentState);
 	}, [currentState]);
 
-	const handleToggle = () => setIsOpen((v) => !v);
+	const toggleFormOpen = () => setIsFormOpen((v) => !v);
 
 	const handleApply = (e?: React.FormEvent) => {
 		e?.preventDefault?.();
 		onStateChange(formState);
-		setIsOpen(false);
+		setIsFormOpen(false);
 	};
 
 	const handleReset = () => {
 		setFormState(defaultArticleState);
 		onStateChange(defaultArticleState);
-		setIsOpen(false);
+		setIsFormOpen(false);
 	};
 
 	const handleChangeFontFamily = (opt: OptionType) =>
 		setFormState((s) => ({ ...s, fontFamilyOption: opt }));
+
 	const handleChangeFontSize = (opt: OptionType) =>
 		setFormState((s) => ({ ...s, fontSizeOption: opt }));
+
 	const handleChangeFontColor = (opt: OptionType) =>
 		setFormState((s) => ({ ...s, fontColor: opt }));
+
 	const handleChangeBackgroundColor = (opt: OptionType) =>
 		setFormState((s) => ({ ...s, backgroundColor: opt }));
+
 	const handleChangeContentWidth = (opt: OptionType) =>
 		setFormState((s) => ({ ...s, contentWidth: opt }));
 
+	// Дополнительный обработчик (Esc закрыть) только когда форма открыта.
+	useEffect(() => {
+		if (!isFormOpen) {
+			return;
+		}
+
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				setIsFormOpen(false);
+			}
+		};
+
+		window.addEventListener('keydown', onKeyDown);
+		return () => window.removeEventListener('keydown', onKeyDown);
+	}, [isFormOpen]);
+
 	return (
 		<>
-			<ArrowButton isOpen={isOpen} onClick={handleToggle} />
+			<ArrowButton isOpen={isFormOpen} onClick={toggleFormOpen} />
 			<aside
-				ref={rootRef}
-				className={clsx(styles.container, { [styles.container_open]: isOpen })}
-				aria-hidden={!isOpen}>
+				ref={formRootRef}
+				className={clsx(styles.container, {
+					[styles.container_open]: isFormOpen,
+				})}
+				aria-hidden={!isFormOpen}>
 				<form className={styles.form} onSubmit={handleApply}>
 					<div className={styles.formTitle}>
 						<Text as='h2' size={31} weight={800}>
