@@ -59,7 +59,7 @@ const App = () => {
 	const dataContent =
 		articleState.contentWidth.value === '1394px' ? 'wide' : 'narrow';
 
-	// Когда форма вызывает onStateChange, то применяется новое состояние и его сохраняем
+	// Когда форма вызывает onStateChange, то применяется новое состояние и сохраняется
 	const handleStateChange = (newState: ArticleStateType) => {
 		setArticleState(newState);
 		try {
